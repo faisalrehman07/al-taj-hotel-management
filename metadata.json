@@ -1,0 +1,6 @@
+{
+  "name": "AL-TAJ HOTEL",
+  "description": "AL-TAJ HOTEL - Aapki Khidmat, Hamara Fakhr. Royal Nawabi dining, Dastarkhwan-E-Al Taj, Mahāfil gallery, and table reservations in Ameer Mohalla, Hassan, Karnataka.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
