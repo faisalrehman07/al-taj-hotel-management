@@ -35,3 +35,4 @@ You can find the Cloud Name, API Key, and API Secret in your Cloudinary dashboar
 
 After editing `.env`, restart `npm run dev`. If Cloudinary is not configured, the Admin upload button will show a clear configuration error instead of silently storing the image locally.
 "# Al-Taj-Hotel" 
+"# Al-Taj-Hotel" 
