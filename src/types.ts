@@ -29,6 +29,11 @@ export interface MenuItem {
   updatedAt?: string;
 }
 
+export interface CartItem {
+  item: MenuItem;
+  quantity: number;
+}
+
 export type DiningPreference = 'General Seating' | 'Family Room' | 'Events & Celebrations' | 'Mandi';
 
 export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';

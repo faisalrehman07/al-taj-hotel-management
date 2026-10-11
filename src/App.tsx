@@ -15,6 +15,7 @@ import { Footer } from './components/Footer';
 import { MobileFloatingBar } from './components/MobileFloatingBar';
 import { DiningPreferencesSection } from './components/DiningPreferencesSection';
 import { ReviewSection } from './components/ReviewSection';
+import { TakeawayCartModal } from './components/TakeawayCartModal';
 
 // Admin CMS Components
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -36,7 +37,7 @@ import {
   getAdminEnquiries,
   adminUpdateReservationStatus,
 } from './lib/api';
-import { MenuItem, MenuCategory, GalleryImage, WebsiteSettings, Reservation, Enquiry } from './types';
+import { MenuItem, MenuCategory, GalleryImage, WebsiteSettings, Reservation, Enquiry, CartItem, DiningPreference } from './types';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const MainApplication: React.FC = () => {
@@ -65,6 +66,61 @@ const MainApplication: React.FC = () => {
   // Admin specific lists
   const [adminReservations, setAdminReservations] = useState<Reservation[]>([]);
   const [adminEnquiries, setAdminEnquiries] = useState<Enquiry[]>([]);
+
+  // Cart & Takeaway Parcel State
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('altaj_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+  const [initialBookingPreference, setInitialBookingPreference] = useState<DiningPreference | undefined>(undefined);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('altaj_cart', JSON.stringify(cart));
+    } catch {
+      // ignore
+    }
+  }, [cart]);
+
+  const handleAddToCart = useCallback((item: MenuItem) => {
+    setCart((prev) => {
+      const itemId = item._id || (item as any).id;
+      const existing = prev.find((c) => (c.item._id || (c.item as any).id) === itemId);
+      if (existing) {
+        return prev.map((c) =>
+          (c.item._id || (c.item as any).id) === itemId
+            ? { ...c, quantity: c.quantity + 1 }
+            : c
+        );
+      }
+      return [...prev, { item, quantity: 1 }];
+    });
+  }, []);
+
+  const handleUpdateQuantity = useCallback((itemId: string, delta: number) => {
+    setCart((prev) => {
+      return prev
+        .map((c) => {
+          if ((c.item._id || (c.item as any).id) === itemId) {
+            const nextQty = c.quantity + delta;
+            return nextQty > 0 ? { ...c, quantity: nextQty } : null;
+          }
+          return c;
+        })
+        .filter(Boolean) as CartItem[];
+    });
+  }, []);
+
+  const handleClearCart = useCallback(() => {
+    setCart([]);
+  }, []);
+
+  const totalCartItems = cart.reduce((sum, c) => sum + c.quantity, 0);
 
   // Hash change detection
   useEffect(() => {
@@ -304,14 +360,16 @@ const MainApplication: React.FC = () => {
 
   // ================= PUBLIC WEBSITE VIEW =================
   return (
-    <div className="min-h-screen bg-[#070709] text-[#f5f0e6] font-sans antialiased selection:bg-[#c5a869] selection:text-[#070709]">
+    <div className="min-h-screen bg-[#070709] text-[#f5f0e6] font-sans antialiased selection:bg-[#dfb75a] selection:text-[#070709]">
       {/* Royal Opening Experience */}
-      <OpeningExperience />
+      <OpeningExperience onNavigate={scrollToSection} />
 
       {/* Luxury Sticky Navbar */}
       <Navbar
         settings={settings}
         onNavigate={scrollToSection}
+        cartCount={totalCartItems}
+        onOpenCart={() => setIsCartOpen(true)}
         onOpenAdmin={() => {
           setViewMode('admin');
           window.location.hash = '#/admin';
@@ -333,6 +391,9 @@ const MainApplication: React.FC = () => {
         <FeaturedDishes
           items={menuItems}
           categories={categories}
+          cart={cart}
+          onAddToCart={handleAddToCart}
+          onUpdateQuantity={handleUpdateQuantity}
           onViewFullMenu={() => scrollToSection('menu')}
         />
 
@@ -341,6 +402,12 @@ const MainApplication: React.FC = () => {
           items={menuItems}
           categories={categories}
           loading={dataLoading}
+          cart={cart}
+          onAddToCart={handleAddToCart}
+          onUpdateQuantity={handleUpdateQuantity}
+          onOpenCart={() => setIsCartOpen(true)}
+          onBookTable={() => scrollToSection('booking')}
+          whatsappNumber={settings?.whatsapp}
         />
 
         {/* Mahāfil Gallery */}
@@ -351,14 +418,20 @@ const MainApplication: React.FC = () => {
 
         {/* Tailored Dining Preferences (General, Family Room, Events, Mandi) */}
         <DiningPreferencesSection
-          onReserveSpace={() => scrollToSection('booking')}
+          onReserveSpace={(space) => {
+            setInitialBookingPreference(space as DiningPreference);
+            scrollToSection('booking');
+          }}
         />
 
         {/* Guest Reviews & Star Ratings */}
         <ReviewSection />
 
         {/* Table Reservation Engine */}
-        <BookingSection settings={settings} />
+        <BookingSection
+          settings={settings}
+          initialPreference={initialBookingPreference}
+        />
 
         {/* Guest Assistance & Enquiry */}
         <EnquirySection />
@@ -383,7 +456,19 @@ const MainApplication: React.FC = () => {
       {/* Mobile Floating Bar */}
       <MobileFloatingBar
         settings={settings}
+        cartCount={totalCartItems}
+        onOpenCart={() => setIsCartOpen(true)}
         onBookTable={() => scrollToSection('booking')}
+      />
+
+      {/* Dastarkhwan Takeaway / Parcel Cart Modal */}
+      <TakeawayCartModal
+        cart={cart}
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        onUpdateQuantity={handleUpdateQuantity}
+        onClearCart={handleClearCart}
+        whatsappNumber={settings?.whatsapp}
       />
     </div>
   );

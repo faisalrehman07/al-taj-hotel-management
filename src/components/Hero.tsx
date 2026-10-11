@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Utensils, Calendar, ChevronDown, Sparkles } from 'lucide-react';
+import { Utensils, Calendar, ChevronDown, Sparkles, MessageCircle } from 'lucide-react';
 import { WebsiteSettings } from '../types';
+import { RestaurantStatusBadge } from './RestaurantStatusBadge';
 
 interface Props {
   settings?: WebsiteSettings;
@@ -18,6 +19,9 @@ export const Hero: React.FC<Props> = ({ settings, onNavigate }) => {
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
+
+  const whatsappNum = settings?.whatsapp || '9620532473';
+  const cleanWhatsApp = whatsappNum.replace(/[^0-9]/g, '');
 
   return (
     <section id="home" className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-[#070709] pt-28 pb-20">
@@ -57,11 +61,21 @@ export const Hero: React.FC<Props> = ({ settings, onNavigate }) => {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Live Operating Status Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-4 inline-block"
+        >
+          <RestaurantStatusBadge variant="compact" className="shadow-lg shadow-black/50" />
+        </motion.div>
+
         {/* Cultural Welcome Crest & Urdu Welcome Motif */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
           className="inline-flex items-center gap-3 px-5 py-2 rounded-full border border-[#c5a869]/30 bg-[#131318]/90 backdrop-blur-md mb-6 shadow-lg shadow-black/40"
         >
           <span className="font-urdu text-base sm:text-lg text-[#dfb75a] font-semibold tracking-wide">
@@ -77,7 +91,7 @@ export const Hero: React.FC<Props> = ({ settings, onNavigate }) => {
         <motion.h1
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.15 }}
           className="font-royal text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-[0.16em] text-[#f5f0e6] mb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
         >
           {settings?.restaurantName || 'AL-TAJ HOTEL'}
@@ -115,30 +129,42 @@ export const Hero: React.FC<Props> = ({ settings, onNavigate }) => {
             'Experience authentic charcoal tandoor craftsmanship, saffron-kissed dum biryani, Mandi feasts, and royal Nawabi hospitality in the heart of Hassan.'}
         </motion.p>
 
-        {/* CTAs - Clean, Focused (No WhatsApp Order) */}
+        {/* CTAs - Authentic & High-utility */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.55 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto"
+          className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-lg mx-auto"
         >
           {/* Primary CTA: Dastarkhwan-E-Al Taj */}
           <button
             onClick={() => onNavigate('menu')}
-            className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 bg-gradient-to-r from-[#c5a869] via-[#dfb75a] to-[#c5a869] hover:opacity-95 text-[#070709] font-bold text-xs sm:text-sm tracking-[0.16em] uppercase rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-gradient-to-r from-[#c5a869] via-[#dfb75a] to-[#c5a869] hover:opacity-95 text-[#070709] font-bold text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer"
           >
             <Utensils className="w-4 h-4" />
-            <span>Dastarkhwan-E-Al Taj</span>
+            <span>Dastarkhwan Menu</span>
           </button>
 
           {/* Secondary CTA: Book A Table */}
           <button
             onClick={() => onNavigate('booking')}
-            className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 bg-[#131318] hover:bg-[#1b1b24] text-[#f5f0e6] border border-[#c5a869]/30 hover:border-[#dfb75a]/60 font-semibold text-xs sm:text-sm tracking-[0.16em] uppercase rounded-lg transition-all cursor-pointer shadow-md"
+            className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#131318] hover:bg-[#1b1b24] text-[#f5f0e6] border border-[#c5a869]/30 hover:border-[#dfb75a]/60 font-semibold text-xs sm:text-sm tracking-[0.16em] uppercase rounded-xl transition-all cursor-pointer shadow-md"
           >
             <Calendar className="w-4 h-4 text-[#dfb75a]" />
             <span>Reserve A Table</span>
           </button>
+
+          {/* WhatsApp Direct Chat / Parcel Inquiry */}
+          <a
+            href={`https://wa.me/91${cleanWhatsApp}?text=${encodeURIComponent('Hello Al-Taj Hotel Hassan! I would like to inquire about dining / parcel availability today.')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 bg-[#131318] hover:bg-[#1f2d22] text-[#25D366] border border-[#25D366]/40 hover:border-[#25D366] font-semibold text-xs sm:text-sm tracking-[0.12em] uppercase rounded-xl transition-all shadow-md cursor-pointer"
+            title="Chat directly with Al-Taj Hotel on WhatsApp"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>WhatsApp Us</span>
+          </a>
         </motion.div>
 
         {/* Highlight Badges */}

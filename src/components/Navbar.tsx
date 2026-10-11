@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Phone, Calendar } from 'lucide-react';
+import { Menu, X, Phone, Calendar, ShoppingBag } from 'lucide-react';
 import { WebsiteSettings } from '../types';
+import { RestaurantStatusBadge } from './RestaurantStatusBadge';
 
 interface Props {
   settings?: WebsiteSettings;
   activeSection?: string;
   onNavigate?: (sectionId: string) => void;
   onOpenAdmin?: () => void;
+  cartCount?: number;
+  onOpenCart?: () => void;
 }
 
-export const Navbar: React.FC<Props> = ({ settings, activeSection, onNavigate }) => {
+export const Navbar: React.FC<Props> = ({
+  settings,
+  activeSection,
+  onNavigate,
+  cartCount = 0,
+  onOpenCart,
+}) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -99,12 +108,27 @@ export const Navbar: React.FC<Props> = ({ settings, activeSection, onNavigate })
 
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-3">
+          {/* Real-time Open/Closed Badge */}
+          <RestaurantStatusBadge variant="compact" />
+
+          {/* Parcel Cart Action Button if cart has items */}
+          {cartCount > 0 && (
+            <button
+              onClick={onOpenCart}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1c1c25] hover:bg-[#252532] text-[#dfb75a] border border-[#dfb75a]/60 text-xs font-bold rounded-lg transition-all cursor-pointer shadow-md animate-in fade-in"
+              title="View Parcel / Takeaway Cart"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 text-[#dfb75a]" />
+              <span>Cart ({cartCount})</span>
+            </button>
+          )}
+
           <a
             href={`tel:${cleanPhone}`}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-[#131318] hover:bg-[#1b1b24] text-[#f5f0e6] border border-[#c5a869]/30 hover:border-[#dfb75a]/60 text-xs font-semibold tracking-wider uppercase rounded-lg transition-colors cursor-pointer shadow-xs"
           >
             <Phone className="w-3.5 h-3.5 text-[#dfb75a]" />
-            <span>Call Us</span>
+            <span>Call</span>
           </a>
 
           <button
@@ -116,21 +140,34 @@ export const Navbar: React.FC<Props> = ({ settings, activeSection, onNavigate })
           </button>
         </div>
 
-        {/* Mobile Hamburger Toggle */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 text-[#f5f0e6] hover:text-[#dfb75a] rounded-lg border border-[#c5a869]/30 hover:border-[#dfb75a]/50 transition-colors focus:outline-none cursor-pointer"
-          aria-label="Toggle navigation menu"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile Action & Hamburger */}
+        <div className="lg:hidden flex items-center gap-2">
+          {cartCount > 0 && (
+            <button
+              onClick={onOpenCart}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#dfb75a] text-[#070709] font-bold text-xs shadow-md"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>{cartCount}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-[#f5f0e6] hover:text-[#dfb75a] rounded-lg border border-[#c5a869]/30 hover:border-[#dfb75a]/50 transition-colors focus:outline-none cursor-pointer"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0e0e13] border-b border-[#c5a869]/25 px-6 py-6 shadow-2xl animate-in fade-in slide-in-from-top-3 duration-200">
           <div className="flex flex-col gap-4">
-            <div className="text-center pb-3 border-b border-[#c5a869]/20">
+            <div className="text-center pb-3 border-b border-[#c5a869]/20 flex flex-col items-center">
+              <RestaurantStatusBadge variant="compact" className="mb-2" />
               <p className="text-xs tracking-[0.2em] uppercase text-[#dfb75a] font-serif font-bold italic">
                 "Aapki Khidmat, Hamara Fakhr"
               </p>
@@ -151,7 +188,20 @@ export const Navbar: React.FC<Props> = ({ settings, activeSection, onNavigate })
               </button>
             ))}
 
-            <div className="pt-3 flex flex-col gap-2.5">
+            {cartCount > 0 && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenCart?.();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-[#1c1c25] border border-[#dfb75a] text-[#dfb75a] font-bold text-xs uppercase tracking-widest rounded-lg shadow-md"
+              >
+                <ShoppingBag className="w-4 h-4 text-[#dfb75a]" />
+                <span>View Parcel Cart ({cartCount} items)</span>
+              </button>
+            )}
+
+            <div className="pt-2 flex flex-col gap-2.5">
               <button
                 onClick={() => handleLinkClick('booking')}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#c5a869] via-[#dfb75a] to-[#c5a869] text-[#070709] font-bold text-xs uppercase tracking-widest rounded-lg shadow-md"

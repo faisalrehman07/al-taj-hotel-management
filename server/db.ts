@@ -716,7 +716,13 @@ export const db = {
   // Users / Auth
   findUserByUsername: async (username: string) => {
     const store = ensureDataFile();
-    return store.users.find(u => u.username.toLowerCase() === username.toLowerCase().trim()) || null;
+    const q = username.toLowerCase().trim();
+    return store.users.find(u =>
+      u.username.toLowerCase() === q ||
+      (u.email && u.email.toLowerCase() === q) ||
+      (q === 'admin' && u.role === 'admin') ||
+      (q === 'al_taj_hotel_admin' && u.role === 'admin')
+    ) || null;
   },
   findUserById: async (id: string) => {
     const store = ensureDataFile();

@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { Calendar, Users, Clock, Phone, CheckCircle, Sparkles, Armchair, Home, PartyPopper, UtensilsCrossed } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Users, Clock, Phone, CheckCircle, Sparkles, Armchair, Home, PartyPopper, UtensilsCrossed, MessageCircle, Copy, Check } from 'lucide-react';
 import { submitReservation } from '../lib/api';
 import { Reservation, WebsiteSettings, DiningPreference } from '../types';
 
 interface Props {
   settings?: WebsiteSettings;
+  initialPreference?: DiningPreference;
 }
 
-export const BookingSection: React.FC<Props> = ({ settings }) => {
+export const BookingSection: React.FC<Props> = ({ settings, initialPreference }) => {
   const [formData, setFormData] = useState({
     customerName: '',
     phone: '',
@@ -15,18 +16,27 @@ export const BookingSection: React.FC<Props> = ({ settings }) => {
     date: '',
     time: '19:30',
     guests: 4,
-    diningPreference: 'Family Room' as DiningPreference,
+    diningPreference: (initialPreference || 'Family Room') as DiningPreference,
     occasion: 'Family Dining',
     specialRequest: '',
   });
 
+  useEffect(() => {
+    if (initialPreference) {
+      setFormData((prev) => ({ ...prev, diningPreference: initialPreference }));
+    }
+  }, [initialPreference]);
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmedReservation, setConfirmedReservation] = useState<Reservation | null>(null);
+  const [copiedRef, setCopiedRef] = useState(false);
 
-  const timeSlots = [
-    '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
-    '07:00 PM', '07:30 PM', '08:00 PM', '08:30 PM', '09:00 PM', '09:30 PM', '10:00 PM'
+  const lunchSlots = [
+    '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM'
+  ];
+  const dinnerSlots = [
+    '07:00 PM', '07:30 PM', '08:00 PM', '08:30 PM', '09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM'
   ];
 
   const occasions = [
@@ -168,9 +178,23 @@ export const BookingSection: React.FC<Props> = ({ settings }) => {
               آپ کی درخواست موصول ہوگئی ہے
             </p>
             
-            <p className="text-xs text-[#dfb75a] uppercase tracking-widest font-mono mb-6 font-bold">
-              Reference: {confirmedReservation.reservationId}
-            </p>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0d0d12] border border-[#c5a869]/30 mb-6">
+              <span className="text-xs text-[#dfb75a] uppercase tracking-widest font-mono font-bold">
+                Reference: {confirmedReservation.reservationId}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(confirmedReservation.reservationId);
+                  setCopiedRef(true);
+                  setTimeout(() => setCopiedRef(false), 2000);
+                }}
+                className="p-1 rounded text-[#dfb75a] hover:text-[#f5f0e6] transition-colors cursor-pointer"
+                title="Copy reference ID"
+              >
+                {copiedRef ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
 
             <div className="bg-[#0d0d12] rounded-xl p-5 border border-[#c5a869]/20 text-left space-y-2.5 text-xs sm:text-sm text-[#d0cbc0] mb-6">
               <div className="flex justify-between">
@@ -200,18 +224,44 @@ export const BookingSection: React.FC<Props> = ({ settings }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              {/* WhatsApp Sync Button */}
+              <button
+                onClick={() => {
+                  const whatsappNum = settings?.whatsapp || '9620532473';
+                  const cleanWhatsApp = whatsappNum.replace(/[^0-9]/g, '');
+                  const msgLines = [
+                    `*TABLE RESERVATION - AL-TAJ HOTEL HASSAN*`,
+                    `Reference: ${confirmedReservation.reservationId}`,
+                    `Guest Name: ${confirmedReservation.customerName}`,
+                    `Dining Space: ${confirmedReservation.diningPreference || 'Family Room'}`,
+                    `Date & Time: ${confirmedReservation.date} at ${confirmedReservation.time}`,
+                    `Guests: ${confirmedReservation.guests} Persons`,
+                    `Phone: ${confirmedReservation.phone}`,
+                    ...(confirmedReservation.specialRequest ? [`Special Request: ${confirmedReservation.specialRequest}`] : []),
+                    ``,
+                    `Please confirm table reservation. Shukriya!`
+                  ];
+                  window.open(`https://wa.me/91${cleanWhatsApp}?text=${encodeURIComponent(msgLines.join('\n'))}`, '_blank');
+                }}
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] text-black font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Confirm on WhatsApp</span>
+              </button>
+
               <a
                 href={`tel:${businessPhone.replace(/\s+/g, '')}`}
                 className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-[#c5a869] to-[#dfb75a] text-[#070709] rounded-xl text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 hover:opacity-95 shadow-md transition-opacity"
               >
                 <Phone className="w-4 h-4" />
-                <span>Call Restaurant Desk</span>
+                <span>Call Desk</span>
               </a>
+
               <button
                 onClick={() => setConfirmedReservation(null)}
                 className="w-full sm:w-auto px-6 py-3.5 bg-[#1c1c25] hover:bg-[#252532] text-[#f5f0e6] border border-[#c5a869]/30 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors cursor-pointer"
               >
-                Reserve Another Table
+                New Booking
               </button>
             </div>
           </div>
@@ -326,7 +376,7 @@ export const BookingSection: React.FC<Props> = ({ settings }) => {
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#d0cbc0] mb-1.5">
                       Number of Guests *
                     </label>
-                    <div className="relative">
+                    <div className="relative mb-2">
                       <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dfb75a]" />
                       <select
                         value={formData.guests}
@@ -335,10 +385,28 @@ export const BookingSection: React.FC<Props> = ({ settings }) => {
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30].map((num) => (
                           <option key={num} value={num} className="bg-[#131318] text-[#f5f0e6]">
-                            {num} {num === 1 ? 'Guest' : 'Guests'}
+                            {num} {num === 1 ? 'Guest' : 'Guests'} {num >= 10 ? '(Communal Majlis)' : ''}
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    {/* Quick guest pills */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[2, 4, 6, 8, 12].map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, guests: g })}
+                          className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer border ${
+                            formData.guests === g
+                              ? 'bg-[#dfb75a] text-[#070709] border-[#dfb75a]'
+                              : 'bg-[#0d0d12] text-[#a8a396] border-[#c5a869]/20 hover:text-[#f5f0e6]'
+                          }`}
+                        >
+                          {g} {g === 12 ? 'Platter (12+)' : 'Guests'}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -376,11 +444,20 @@ export const BookingSection: React.FC<Props> = ({ settings }) => {
                         onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                         className="w-full pl-11 pr-4 py-3 bg-[#0d0d12] border border-[#c5a869]/30 focus:border-[#dfb75a] rounded-xl text-sm text-[#f5f0e6] focus:outline-none transition-colors"
                       >
-                        {timeSlots.map((slot) => (
-                          <option key={slot} value={slot} className="bg-[#131318] text-[#f5f0e6]">
-                            {slot}
-                          </option>
-                        ))}
+                        <optgroup label="Afternoon Dastarkhwan (Lunch)" className="bg-[#131318] text-[#dfb75a] font-bold">
+                          {lunchSlots.map((slot) => (
+                            <option key={slot} value={slot} className="bg-[#131318] text-[#f5f0e6] font-normal">
+                              {slot}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Shaam-E-Taj (Dinner)" className="bg-[#131318] text-[#dfb75a] font-bold">
+                          {dinnerSlots.map((slot) => (
+                            <option key={slot} value={slot} className="bg-[#131318] text-[#f5f0e6] font-normal">
+                              {slot}
+                            </option>
+                          ))}
+                        </optgroup>
                       </select>
                     </div>
                   </div>

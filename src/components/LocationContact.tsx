@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WebsiteSettings } from '../types';
-import { MapPin, Phone, Mail, Clock, Navigation, Calendar, Copy, Check, Instagram } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Navigation, Calendar, Copy, Check, Instagram, MessageCircle } from 'lucide-react';
+import { RestaurantStatusBadge } from './RestaurantStatusBadge';
 
 interface Props {
   settings?: WebsiteSettings;
@@ -12,6 +13,7 @@ export const LocationContact: React.FC<Props> = ({ settings, onBookTable }) => {
 
   // Business Constraints
   const phone = settings?.phone || '+91 94801 23456';
+  const whatsapp = settings?.whatsapp || '9620532473';
   const email = settings?.email || 'altajhotelhassan@gmail.com';
   const hours = settings?.openingHours || '11:30 AM – 11:30 PM (Daily)';
   const fullAddress =
@@ -23,6 +25,7 @@ export const LocationContact: React.FC<Props> = ({ settings, onBookTable }) => {
   const instagramUrl = settings?.instagramUrl || 'https://instagram.com/altajhotel_hassan';
 
   const cleanPhone = phone.replace(/[^0-9+]/g, '');
+  const cleanWhatsApp = whatsapp.replace(/[^0-9]/g, '');
 
   const copyAddress = () => {
     navigator.clipboard.writeText(fullAddress);
@@ -136,45 +139,50 @@ export const LocationContact: React.FC<Props> = ({ settings, onBookTable }) => {
               </div>
 
               <div className="space-y-1 sm:col-span-2">
-                <span className="text-[10px] tracking-widest text-[#a8a396] uppercase font-bold block">
-                  Dining Timings
+                <span className="text-[10px] tracking-widest text-[#a8a396] uppercase font-bold block mb-1">
+                  Current Kitchen & Dining Status
                 </span>
-                <p className="text-xs font-semibold text-[#f5f0e6] flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-[#dfb75a]" />
-                  <span>{hours}</span>
-                </p>
+                <RestaurantStatusBadge variant="banner" className="w-full" />
               </div>
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-[#c5a869]/20">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-6 border-t border-[#c5a869]/20">
               <a
                 href={`tel:${cleanPhone}`}
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0d0d12] hover:bg-[#1c1c25] border border-[#c5a869]/25 text-[#f5f0e6] text-xs font-bold tracking-wider uppercase transition-colors"
+                className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0d0d12] hover:bg-[#1c1c25] border border-[#c5a869]/25 hover:border-[#dfb75a] text-[#f5f0e6] text-xs font-bold tracking-wider uppercase transition-colors"
               >
                 <Phone className="w-4 h-4 text-[#dfb75a] mb-1" />
-                <span>Call Us</span>
+                <span>Call Desk</span>
+              </a>
+
+              <a
+                href={`https://wa.me/91${cleanWhatsApp}?text=${encodeURIComponent('Hello Al-Taj Hotel! I would like to inquire about table booking / parcel orders.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0d0d12] hover:bg-[#1c1c25] border border-[#25D366]/40 hover:border-[#25D366] text-[#25D366] text-xs font-bold tracking-wider uppercase transition-colors"
+              >
+                <MessageCircle className="w-4 h-4 text-[#25D366] mb-1" />
+                <span>WhatsApp</span>
               </a>
 
               <a
                 href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0d0d12] hover:bg-[#1c1c25] border border-[#c5a869]/25 text-[#f5f0e6] text-xs font-bold tracking-wider uppercase transition-colors"
+                className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0d0d12] hover:bg-[#1c1c25] border border-[#c5a869]/25 hover:border-[#dfb75a] text-[#f5f0e6] text-xs font-bold tracking-wider uppercase transition-colors"
               >
                 <Navigation className="w-4 h-4 text-[#dfb75a] mb-1" />
                 <span>Directions</span>
               </a>
 
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0d0d12] hover:bg-[#1c1c25] border border-[#c5a869]/25 text-[#f5f0e6] text-xs font-bold tracking-wider uppercase transition-colors"
+              <button
+                onClick={onBookTable}
+                className="flex flex-col items-center justify-center p-3 rounded-xl bg-gradient-to-r from-[#c5a869] to-[#dfb75a] text-[#070709] text-xs font-bold tracking-wider uppercase transition-all shadow-md cursor-pointer"
               >
-                <Instagram className="w-4 h-4 text-[#dfb75a] mb-1" />
-                <span>Instagram</span>
-              </a>
+                <Calendar className="w-4 h-4 text-[#070709] mb-1" />
+                <span>Book Table</span>
+              </button>
             </div>
           </div>
 
